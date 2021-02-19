@@ -1,0 +1,87 @@
+<template>
+  <div class="container mt-5" v-if="loadingDone">
+    <router-view />
+  </div>
+</template>
+
+<script>
+import axios from 'axios'
+
+export default {
+  name: 'App',
+  data () {
+    return {
+      loadingDone: false
+    }
+  },
+  mounted () {
+    this.init()
+    // vue 3 will save us from that
+  },
+  methods: {
+    init () {
+      const axiosInstance = axios.create({
+        baseURL: 'http://localhost:3000/api',
+        timeout: 3000
+      })
+
+      this.$store.commit('setAxios', axiosInstance)
+      this.loadingDone = true
+    }
+  }
+}
+</script>
+
+<style lang="sass">
+
+@keyframes hidden
+  from, to
+    opacity: 0
+
+@keyframes fadeInBack
+  from
+    transform: scale(.98) rotateX(-10deg) translateZ(-20px)
+    opacity: 0
+  to
+    transform: translateY(0)
+    opacity: 1
+
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500&display=swap');
+
+$white: rgba(255, 255, 255, 1)
+$box-shadow-sketch: 0 1px 1px rgba(0, 0, 0, .04), 0 4px 5px rgba(0, 0, 0, .02), 0 7px 9px rgba(0, 0, 0, .04)
+$box-shadow-outline-white: 0 0 0 3px rgba(255, 255, 255, .3)
+$box-shadow-card: $box-shadow-outline-white, $box-shadow-sketch, 0 25px 30px -15px rgba(0, 0, 0, .08), 0 15px 18px -30px rgba(0, 0, 0, .04)
+$loading-animation-duration: .4s
+
+=onload-fadeIn($position, $duration)
+  $delay: calc(#{$position} * (#{$duration} / 2))
+  animation: hidden $delay, fadeInBack calc(#{$duration} * 2)
+  animation-delay: 0s, $delay
+
+body
+  background-color: rgba(240, 250, 250, 1) !important
+  *
+    font-family: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"
+    font-weight: 400
+
+h6
+  font-weight: 300
+
+.cursor-pointer
+  cursor: pointer
+
+.card-background
+  background-color: $white
+  border-color: transparent !important
+  position: relative
+  margin-top: .5em
+  padding: .75em 1em
+  box-shadow: $box-shadow-card
+
+.loading-animation
+  @for $i from 1 through 30
+    &:nth-child(#{$i})
+      +onload-fadeIn(calc(#{$i} - 1), $loading-animation-duration)
+
+</style>
