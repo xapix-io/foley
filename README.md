@@ -1,14 +1,24 @@
-# foley
-## an axel-f playground
+# frontend
 
-## start
-#### frontend
-1. `yarn`
-2. `yarn serve`
+## Project setup
+```
+yarn install
+```
 
-#### backend
-1. `yarn`
-2. `yarn run dev`
+### Compiles and hot-reloads for development
+```
+yarn serve
+```
 
-#### docker
-* `docker-compose up -d`
+### Compiles and minifies for production
+```
+yarn build
+```
+
+### Lints and fixes files
+```
+yarn lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
