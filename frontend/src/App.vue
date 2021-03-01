@@ -1,5 +1,5 @@
 <template>
-  <div class="container mt-5" v-if="loadingDone">
+  <div v-if="loadingDone">
     <router-view />
   </div>
 </template>
@@ -59,10 +59,14 @@ $loading-animation-duration: .4s
   animation: hidden $delay, fadeInBack calc(#{$duration} * 2)
   animation-delay: 0s, $delay
 
+header
+  color: $white
+
 body
-  background-color: rgba(240, 250, 250, 1) !important
+  background-color: #1e1e1e !important
+
   *
-    font-family: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"
     font-weight: 400
 
 h6
@@ -70,14 +74,6 @@ h6
 
 .cursor-pointer
   cursor: pointer
-
-.card-background
-  background-color: $white
-  border-color: transparent !important
-  position: relative
-  margin-top: .5em
-  padding: .75em 1em
-  box-shadow: $box-shadow-card
 
 .loading-animation
   @for $i from 1 through 30

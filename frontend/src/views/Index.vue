@@ -2,11 +2,11 @@
   <div
     class="playground-list"
     v-if="playgrounds">
-    <div class="m-3 loading-animation">
-      <h3 class="mb-1">Playgrounds</h3>
-      <h6>Recent Activity</h6>
-    </div>
-    <div class="list-group">
+    <header class="m-3">
+      <h5 class="mb-0">Playgrounds</h5>
+      <small>Recent Activity</small>
+    </header>
+    <div class="list-group m-3">
       <router-link
         :to="{ name: 'New' }"
         class="list-group-item card-background d-flex justify-content-center align-items-center add-playground-button cursor-pointer">
@@ -19,7 +19,7 @@
         :key="playground._id" />
       <div
         v-if="!playgrounds.length"
-        class="list-group-item card-background alert alert-light text-center">
+        class="list-group-item alert alert-light bg-dark text-center">
         <p class="mb-0">No playground in the database. 🙆🏼‍♀️</p>
       </div>
     </div>
