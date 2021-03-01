@@ -54,13 +54,28 @@ $box-shadow-outline-white: 0 0 0 3px rgba(255, 255, 255, .3)
 $box-shadow-card: $box-shadow-outline-white, $box-shadow-sketch, 0 25px 30px -15px rgba(0, 0, 0, .08), 0 15px 18px -30px rgba(0, 0, 0, .04)
 $loading-animation-duration: .4s
 
+.alert
+  &.alert-dark-bg
+    background-color: rgba(20, 20, 20, 1)
+    color: rgba(100, 100, 100, 1)
+    border-color: rgba(35, 35, 35, 1)
+    border-radius: 15px
+
 =onload-fadeIn($position, $duration)
   $delay: calc(#{$position} * (#{$duration} / 2))
   animation: hidden $delay, fadeInBack calc(#{$duration} * 2)
   animation-delay: 0s, $delay
 
 header
+  position: absolute
+  left: 0
+  right: 0
+  top: 0
+  z-index: 1000
+  background-color: rgba(25, 25, 25, 1)
   color: $white
+  a
+    color: $white !important
 
 body
   background-color: #1e1e1e !important

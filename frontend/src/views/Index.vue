@@ -2,11 +2,11 @@
   <div
     class="playground-list"
     v-if="playgrounds">
-    <header class="m-3">
+    <header class="px-3 py-2">
       <h5 class="mb-0">Playgrounds</h5>
       <small>Recent Activity</small>
     </header>
-    <div class="list-group m-3">
+    <div class="index-list list-group mx-3">
       <router-link
         :to="{ name: 'New' }"
         class="list-group-item card-background d-flex justify-content-center align-items-center add-playground-button cursor-pointer">
@@ -53,8 +53,13 @@ export default {
 </script>
 
 <style lang="sass">
+
+.index-list
+  margin-top: 80px
+
 .add-playground-button
   opacity: .6
   &:hover
     opacity: 1
+
 </style>

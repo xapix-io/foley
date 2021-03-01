@@ -1,13 +1,8 @@
 <template>
   <div>
-    <header class="p-3 d-flex align-items-center justify-content-between">
-      <div class="left">
-        <h6 class="mb-0">Editor</h6>
-        <small>Test and try out Axel-F formulas</small>
-      </div>
-      <div class="right">
-        <router-link :to="{ name: 'Index' }">Show all</router-link>
-      </div>
+    <header class="px-3 py-2">
+      <h6 class="mb-0">Playground (<router-link :to="{ name: 'Index' }">Show all</router-link>)</h6>
+      <small>Test and try out Axel-F formulas</small>
     </header>
     <div class="grid-layout">
       <section class="grid-data-sample px-3">
@@ -30,9 +25,9 @@
           :options="monacoOptions"
         />
       </section>
-      <section class="grid-result px-3">
+      <section class="grid-result p-3">
         <h6>Returns</h6>
-        <div class="alert alert-light bg-dark" v-if="error.message">
+        <div class="alert alert-dark-bg" v-if="error.message">
           <h6 class="mb-1">{{ error.message }}</h6>
           <samp><small>{{ error.data }}</small></samp>
         </div>
@@ -62,7 +57,15 @@ export default {
       monacoOptions: {
         quickSuggestions: false,
         snippetSuggestions: 'none',
-        wordBasedSuggestions: false
+        wordBasedSuggestions: false,
+        scrollbar: {
+          vertical: 'hidden',
+          verticalScrollbarSize: 0,
+          useShadows: false
+        },
+        minimap: {
+          enabled: false
+        }
       },
       error: {}
     }
@@ -110,30 +113,39 @@ export default {
 <style lang="sass">
 $border-radius: 1rem
 $full-editor-height: calc(100vh - 12 * 1em)
+$border-color: rgba(38, 38, 38, 1)
 
 .grid-layout
+  z-index: 200
+  position: absolute
+  top: 0
+  bottom: 0
+  left: 0
+  right: 0
   display: grid
   grid-template-areas: "data-sample formula" "data-sample result"
   grid-template-columns: 1fr 1fr
   grid-template-rows: 1fr 1fr
+  .grid-data-sample, .grid-formula
+    padding-top: 80px
   .grid-data-sample
+    border-right: 1px solid $border-color
     grid-area: data-sample
     .editor
       height: $full-editor-height
   .grid-formula
+    border-bottom: 1px solid $border-color
     grid-area: formula
     .editor
       height: calc(#{$full-editor-height} / 2)
   .grid-result
     grid-area: result
+    background-color: rgba(27, 27, 27, 1)
     pre
-      color: white
+      color: #8CA06E
   section
     & > h6
       color: #aaa !important
-
-a
-  color: black !important
 
 .card
   border-radius: $border-radius !important
