@@ -17,8 +17,12 @@ const appsnsConfig = configs.prefixed("appsns");
 const appsnsStackRef = new pulumi.StackReference(appsnsConfig.require("appsns-stack-ref"));
 const appsNs = appsnsStackRef.requireOutput("appsNs");
 
+function stringOutput(o: pulumi.Output<any>): pulumi.Output<string> {
+    return o.apply((v: any) => v as string);
+}
+
 foley({
     provider,
     namespace: stringOutput(appsNs),
     version,
-})
+});

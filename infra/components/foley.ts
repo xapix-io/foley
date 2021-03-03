@@ -3,7 +3,10 @@ import * as pulumi from "@pulumi/pulumi";
 import * as xapix from "@xapix-io/infra-utils";
 import configs from "../config";
 
-function makeEnvVars(config: xapix.PrefixedConfiguration): k8s.types.input.core.v1.EnvVar[] {
+function makeEnvVars(
+    config: xapix.PrefixedConfiguration,
+    domainBase: string,
+): k8s.types.input.core.v1.EnvVar[] {
     return [{
         name: "NODE_ENV",
         value: "production",
@@ -37,11 +40,11 @@ export default function({
     const frontendConfig = configs.prefixed("xapix-foley-frontend");
     const backendConfig = configs.prefixed("xapix-foley-backend");
 
-    const domainBase = configs.get("domain-base");
+    const domainBase = config.require("domain-base");
     const frontendMemoryMB = frontendConfig.requireNumber("require-memory");
     const backendMemoryMB = backendConfig.requireNumber("require-memory");
 
-    const env = makeEnvVars(config);
+    const env = makeEnvVars(config, domainBase);
 
     const publishServiceArgs = {
         namespace,
