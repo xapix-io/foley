@@ -34,21 +34,31 @@ app.listen(port, function() {
   console.log("Server is running on Port: " + port);
 });
 
-app.get('/api/plagrounds', (request, response) => {
+app.get('/api/playgrounds', (request, response) => {
   playgrounds.find({}, function(error, result) {
     if (error) {
       response.send(error);
     } else {
       response.send(result);
     }
-  });
-});
+  })
+})
+
+app.get('/api/playgrounds/:id', (request, response) => {
+  playgrounds.findById(+request.params.id, function(error, result) {
+    if (error) {
+      response.send(error);
+    } else {
+      response.send(result);
+    }
+  })
+})
 
 app.post('/api/playgrounds', jsonparser, (request, response) => {
   let _id
   playgrounds.find().sort({ _id: -1 }).limit(1).exec((error, result) => {
-    const [lastEntry, ] = result || [{}]
-    _id = (lastEntry._id || 0) + 1
+    const [lastEntry] = result
+    _id = ((lastEntry || {})._id || 0) + 1
 
     const playground = {
       ...request.body,
@@ -63,7 +73,17 @@ app.post('/api/playgrounds', jsonparser, (request, response) => {
       }
     })
   })
-});
+})
+
+app.put('/api/playgrounds/:id', jsonparser, (request, response) => {
+  playgrounds.findOneAndUpdate({ _id: request.params.id }, request.body, { new: true }, (error, result) => {
+    if (error) {
+      response.send(error);
+    } else {
+      response.send(result);
+    }
+  })
+})
 
 app.delete('/api/playgrounds/:id', (request, response) => {
   playgrounds.deleteOne({ _id: request.params.id }, function(error, result) {
@@ -72,5 +92,5 @@ app.delete('/api/playgrounds/:id', (request, response) => {
     } else {
       response.send(result);
     }
-  });
-});
+  })
+})

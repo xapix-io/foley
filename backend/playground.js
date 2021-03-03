@@ -13,6 +13,9 @@ let playground = new Schema(
     formula: {
       type: String
     },
+    name: {
+      type: String
+    },
     preview: {
       type: Object
     }
