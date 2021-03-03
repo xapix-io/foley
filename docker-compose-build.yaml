@@ -1,0 +1,39 @@
+# DEV environment
+
+version: '3'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile
+    image: 'foley/frontend:dev'
+    command: yarn serve
+    ports:
+      - 80:8080
+    environment:
+      NODE_ENV: development
+      BASE_URL: http://localhost/
+    volumes:
+      - /opt/app/node_modules
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile
+    image: 'foley/backend:dev'
+    command: ./wait && yarn dev
+    ports:
+      - 3000:3000
+    environment:
+      NODE_ENV: development
+      MONGO_URI: mongodb://mongo:27017/playgrounds
+      WAIT_HOSTS: mongo:27017
+    volumes:
+      - /opt/app/node_modules
+
+  mongo:
+    image: mongo
+    hostname: mongo
+    ports:
+      - 27017:27017
