@@ -53,7 +53,7 @@ app.get('/api/playgrounds/:id', (request, response) => {
 })
 
 app.post('/api/playgrounds', jsonparser, (request, response) => {
-  playgrounds.create({ ...request.body, _id: undefined }, (error, result) => {
+  playgrounds.create(request.body, (error, result) => {
     if (error) {
       response.send(error);
     } else {
