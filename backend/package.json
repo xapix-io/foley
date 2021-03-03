@@ -16,6 +16,7 @@
     "express": "^4.17.1",
     "mongoose": "^5.11.18",
     "mongoose-uuid2": "^2.3.0",
+    "node-uuid": "^1.4.8",
     "socket.io": "^2.3.0",
     "uuid": "^8.3.2"
   },

@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const axios = require("axios");
 const express = require("express")
 const cors = require('cors')
 
@@ -16,7 +15,6 @@ const bodyparser = require('body-parser');
 const jsonparser = bodyparser.json();
 
 const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/playgrounds';
-
 
 mongoose.connect(uri, { useUnifiedTopology: true, useNewUrlParser: true });
 
@@ -45,7 +43,7 @@ app.get('/api/playgrounds', (request, response) => {
 })
 
 app.get('/api/playgrounds/:id', (request, response) => {
-  playgrounds.findById(+request.params.id, function(error, result) {
+  playgrounds.findById(request.params.id, function(error, result) {
     if (error) {
       response.send(error);
     } else {
@@ -55,23 +53,12 @@ app.get('/api/playgrounds/:id', (request, response) => {
 })
 
 app.post('/api/playgrounds', jsonparser, (request, response) => {
-  let _id
-  playgrounds.find().sort({ _id: -1 }).limit(1).exec((error, result) => {
-    const [lastEntry] = result
-    _id = ((lastEntry || {})._id || 0) + 1
-
-    const playground = {
-      ...request.body,
-      _id
+  playgrounds.create({ ...request.body, _id: undefined }, (error, result) => {
+    if (error) {
+      response.send(error);
+    } else {
+      response.send(result);
     }
-
-    playgrounds.create(playground, (error, result) => {
-      if (error) {
-        response.send(error);
-      } else {
-        response.send(result);
-      }
-    })
   })
 })
 
