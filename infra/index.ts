@@ -24,19 +24,19 @@ function stringOutput(o: pulumi.Output<any>): pulumi.Output<string> {
   return o.apply((v: any) => v as string);
 }
 
-let mongoURI: pulumi.Output<string> = mongodb({
+let mongoOutputs = mongodb({
   provider,
   namespace: stringOutput(appsNs),
 });
 
 let outputs = foley({
-  mongoURI,
+  mongoOutputs,
   provider,
   namespace: stringOutput(appsNs),
   version,
 });
 
-const uri = mongoURI;
+const uri = mongoOutputs.uri;
 const endpoint = outputs.endpoints[0].apply(x => x.ip && x.hostname);
 
 export { uri, endpoint };

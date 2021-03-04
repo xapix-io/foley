@@ -5,7 +5,8 @@ import configs from "../config";
 
 function makeEnvVars(
   domainBase: string,
-  mongoURI: string
+  mongoURI: string,
+  mongoIP: string,
 ): k8s.types.input.core.v1.EnvVar[] {
   return [
     {
@@ -23,18 +24,21 @@ function makeEnvVars(
     {
       name: "WAIT_HOSTS",
       // This is a placeholder - use refs
-      value: "27017",
+      value: `${mongoIP}:27017`,
     },
   ];
 }
 
 export default function ({
-  mongoURI,
+  mongoOutputs,
   provider,
   namespace,
   version,
 }: {
-  mongoURI: pulumi.Output<string>;
+  mongoOutputs: {
+    uri: pulumi.Output<string>,
+    ip: pulumi.Output<string>,
+  },
   provider: k8s.Provider;
   version: string;
   namespace: pulumi.Output<string>;
@@ -50,7 +54,8 @@ export default function ({
   const frontendMemoryMB = frontendConfig.requireNumber("require-memory");
   const backendMemoryMB = backendConfig.requireNumber("require-memory");
 
-  const env = mongoURI.apply(uri => makeEnvVars(domainBase, uri));
+  const env = pulumi.all([mongoOutputs.uri, mongoOutputs.ip])
+    .apply(([uri, ip]) => makeEnvVars(domainBase, uri, ip));
 
   const publishServiceArgs = {
     namespace,
@@ -125,7 +130,7 @@ export default function ({
               {
                 name: "foley-frontend",
                 image,
-                args: ["yarn", "serve"],
+                args: ["frontend"],
                 env,
                 ports: [{ containerPort: 8080 }],
                 resources: {
@@ -149,7 +154,7 @@ export default function ({
                 name: "foley-backend",
                 image,
                 // this here probably shouldn't be "yarn dev"
-                args: ["./wait", "&&", "yarn", "dev"],
+                args: ["backend"],
                 env,
                 ports: [{ containerPort: 3000 }],
                 resources: {

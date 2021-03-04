@@ -30,12 +30,11 @@ export default function ({
     `${stack}-mongo`,
     {
       chart: "mongodb",
-      repo: "bitnami",
+      //repo: "bitnami",
       namespace,
       fetchOpts: {
         repo: "https://charts.bitnami.com/bitnami",
       },
-      resourcePrefix: `${stack}`,
       values: {
         architecture: "standalone",
         auth: {
@@ -62,7 +61,10 @@ export default function ({
 
   const mongo = mongoChart.getResourceProperty("v1/Service", `${stack}-mongo`, "spec");
 
-  return pulumi.concat(
-    "mongodb://", dbUsername, ":", dbPassword, "@", mongo.clusterIP, ":27017/playgrounds"
-  );
+  return {
+    uri: pulumi.concat(
+      "mongodb://", dbUsername, ":", dbPassword, "@", mongo.clusterIP, ":27017/playgrounds"
+    ),
+    ip: mongo.clusterIP,
+  };
 }
