@@ -4,8 +4,9 @@ import * as pulumi from "@pulumi/pulumi";
 import * as xapix from "@xapix-io/infra-utils";
 import configs from "./config";
 import foley from "./components/foley";
+import mongodb from "./components/mongodb";
 
-const version =  xapix.env.req('VERSION');
+const version = xapix.env.req("VERSION");
 const stack = pulumi.getStack();
 
 const coreConfig = configs.prefixed("core");
@@ -14,15 +15,28 @@ const kubeconfig = coreStack.requireOutput("kubeconfig");
 const provider = new k8s.Provider(`core-${stack}-provider`, { kubeconfig });
 
 const appsnsConfig = configs.prefixed("appsns");
-const appsnsStackRef = new pulumi.StackReference(appsnsConfig.require("appsns-stack-ref"));
+const appsnsStackRef = new pulumi.StackReference(
+  appsnsConfig.require("appsns-stack-ref")
+);
 const appsNs = appsnsStackRef.requireOutput("appsNs");
 
 function stringOutput(o: pulumi.Output<any>): pulumi.Output<string> {
-    return o.apply((v: any) => v as string);
+  return o.apply((v: any) => v as string);
 }
 
-foley({
-    provider,
-    namespace: stringOutput(appsNs),
-    version,
+let mongoURI: pulumi.Output<string> = mongodb({
+  provider,
+  namespace: stringOutput(appsNs),
 });
+
+let outputs = foley({
+  mongoURI,
+  provider,
+  namespace: stringOutput(appsNs),
+  version,
+});
+
+const uri = mongoURI;
+const endpoint = outputs.endpoints[0].apply(x => x.ip && x.hostname);
+
+export { uri, endpoint };
