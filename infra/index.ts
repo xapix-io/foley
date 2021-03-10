@@ -37,6 +37,6 @@ let outputs = foley({
 });
 
 const uri = mongoOutputs.uri;
-const endpoint = outputs.endpoints[0].apply(x => x.ip && x.hostname);
+const endpoint = outputs.endpoints.status.loadBalancer.ingress[0].apply(x => x.ip || x.hostname);
 
 export { uri, endpoint };

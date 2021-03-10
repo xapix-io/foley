@@ -47,7 +47,6 @@ export default function ({
         service: {
           type: "ClusterIP",
           port: 27017,
-          nameOverride: `foley-${stack}-mongodb`,
         },
         metrics: {
           serviceMonitor: {
@@ -59,7 +58,7 @@ export default function ({
     { provider }
   );
 
-  const mongo = mongoChart.getResourceProperty("v1/Service", `${stack}-mongo`, "spec");
+  const mongo = mongoChart.getResourceProperty("v1/Service", `${stack}-mongodb`, "spec");
 
   return {
     uri: pulumi.concat(

@@ -59,21 +59,22 @@ export default function ({
 
   const publishServiceArgs = {
     namespace,
+    appLabels,
     provider,
   };
 
-  xapix.k8sService.publishService({
-    ...publishServiceArgs,
-    domain: `foley.${domainBase}`,
-    service: {
-      create: true,
-      name: "foley-backend",
-      targetPort: 3000,
-      selector: appLabels,
-    },
-  });
+  // xapix.k8sService.publishService({
+  //   ...publishServiceArgs,
+  //   domain: `foley.${domainBase}`,
+  //   service: {
+  //     create: true,
+  //     name: "foley-backend",
+  //     targetPort: 3000,
+  //     selector: appLabels,
+  //   },
+  // });
 
-  xapix.k8sService.publishService({
+  const frontendIngress = xapix.k8sService.publishService({
     ...publishServiceArgs,
     domain: `foley.${domainBase}`,
     service: {
@@ -84,37 +85,49 @@ export default function ({
     },
   });
 
-  const service = new k8s.core.v1.Service(
-    "foley-app",
-    {
-      metadata: {
-        name: "foley-app",
-        namespace,
-        labels: {
-          "xapix/http-monitor": "true",
-        },
-      },
-      spec: {
-        type: "ClusterIP",
-        ports: [
-          {
-            name: "frontend-http",
-            port: 80,
-            protocol: "TCP",
-            targetPort: 8080,
-          },
-          {
-            name: "backend-http",
-            port: 3000,
-            protocol: "TCP",
-            targetPort: 3000,
-          },
-        ],
-        selector: appLabels,
+  // const frontendService = new k8s.core.v1.Service("foley-frontend", {
+  //   metadata: {
+  //     name: "foley-frontend",
+  //     namespace,
+  //     labels: {
+  //       "xapix/http-monitor": "true",
+  //     },
+  //   },
+  //   spec: {
+  //     type: "ClusterIP",
+  //     ports: [
+  //       {
+  //         name: "http",
+  //         port: 80,
+  //         protocol: "TCP",
+  //         targetPort: 8080,
+  //       },
+  //     ],
+  //     selector: appLabels,
+  //   },
+  // }, { provider });
+
+  const backendService = new k8s.core.v1.Service("foley-backend", {
+    metadata: {
+      name: "foley-backend",
+      namespace,
+      labels: {
+        "xapix/http-monitor": "true",
       },
     },
-    { provider }
-  );
+    spec: {
+      type: "ClusterIP",
+      ports: [
+        {
+          name: "http",
+          port: 3000,
+          protocol: "TCP",
+          targetPort: 3000,
+        },
+      ],
+      selector: appLabels,
+    },
+  }, { provider });
 
   const appResource = new k8s.apps.v1.ReplicaSet(
     `foley-${stack}-repset`,
@@ -128,9 +141,17 @@ export default function ({
           spec: {
             containers: [
               {
-                name: "foley-frontend",
+                name: "foley-app-frontend",
                 image,
                 args: ["frontend"],
+                readinessProbe: {
+                  httpGet: {
+                    path: "/",
+                    port: 8080,
+                  },
+                  initialDelaySeconds: 10,
+                  periodSeconds: 5
+                },
                 env,
                 ports: [{ containerPort: 8080 }],
                 resources: {
@@ -151,9 +172,8 @@ export default function ({
                 },
               },
               {
-                name: "foley-backend",
+                name: "foley-app-backend",
                 image,
-                // this here probably shouldn't be "yarn dev"
                 args: ["backend"],
                 env,
                 ports: [{ containerPort: 3000 }],
@@ -188,7 +208,5 @@ export default function ({
     { provider }
   );
 
-  const ingress = service.status.loadBalancer.ingress;
-
-  return { endpoints: ingress };
+  return { endpoints: frontendIngress };
 }
