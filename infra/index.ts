@@ -29,7 +29,7 @@ let mongoOutputs = mongodb({
   namespace: stringOutput(appsNs),
 });
 
-let outputs = foley({
+let foleyOutputs = foley({
   mongoOutputs,
   provider,
   namespace: stringOutput(appsNs),
@@ -37,6 +37,6 @@ let outputs = foley({
 });
 
 const uri = mongoOutputs.uri;
-const endpoint = outputs.endpoints.status.loadBalancer.ingress[0].apply(x => x.ip || x.hostname);
+const endpoint = foleyOutputs.endpoints.status.loadBalancer.ingress[0].apply(x => x.ip || x.hostname);
 
 export { uri, endpoint };

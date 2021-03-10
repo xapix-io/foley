@@ -23,7 +23,6 @@ function makeEnvVars(
     },
     {
       name: "WAIT_HOSTS",
-      // This is a placeholder - use refs
       value: `${mongoIP}:27017`,
     },
   ];
