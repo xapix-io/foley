@@ -16,15 +16,10 @@ const config = new Configuration({
         },
     },
     "xapix-foley-common": {
-        "domain-base": {
+        "domain": {
             required: true,
             type: PropType.STRING,
             description: "Domain under which the foley app will be accessed.",
-        },
-        "replicas": {
-            type: PropType.NUMBER,
-            description: "Number of foley instances to deploy",
-            default: 1
         },
     },
     "xapix-foley-backend": {

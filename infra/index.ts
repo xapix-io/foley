@@ -1,5 +1,4 @@
 import * as k8s from "@pulumi/kubernetes";
-import * as kx from "@pulumi/kubernetesx";
 import * as pulumi from "@pulumi/pulumi";
 import * as xapix from "@xapix-io/infra-utils";
 import configs from "./config";
@@ -20,23 +19,19 @@ const appsnsStackRef = new pulumi.StackReference(
 );
 const appsNs = appsnsStackRef.requireOutput("appsNs");
 
-function stringOutput(o: pulumi.Output<any>): pulumi.Output<string> {
-  return o.apply((v: any) => v as string);
-}
-
-let mongoOutputs = mongodb({
+const mongo = mongodb({
   provider,
-  namespace: stringOutput(appsNs),
+  namespace: appsNs,
 });
 
-let foleyOutputs = foley({
-  mongoOutputs,
+const ingress = foley({
+  mongo,
   provider,
-  namespace: stringOutput(appsNs),
+  namespace: appsNs,
   version,
 });
 
-const uri = mongoOutputs.uri;
-const endpoint = foleyOutputs.endpoints.status.loadBalancer.ingress[0].apply(x => x.ip || x.hostname);
+const endpoints = ingress.status.loadBalancer.ingress
+  .apply(ingresses => ingresses.map(x => x.ip || x.hostname));
 
-export { uri, endpoint };
+export { endpoints };

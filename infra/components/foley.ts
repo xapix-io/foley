@@ -1,10 +1,9 @@
 import * as k8s from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
-import * as xapix from "@xapix-io/infra-utils";
 import configs from "../config";
 
 function makeEnvVars(
-  domainBase: string,
+  domain: string,
   mongoURI: string,
   mongoIP: string,
 ): k8s.types.input.core.v1.EnvVar[] {
@@ -15,7 +14,7 @@ function makeEnvVars(
     },
     {
       name: "BASE_URL",
-      value: `https://foley.${domainBase}/`,
+      value: `https://${domain}/`,
     },
     {
       name: "MONGO_URI",
@@ -29,114 +28,87 @@ function makeEnvVars(
 }
 
 export default function ({
-  mongoOutputs,
+  mongo,
   provider,
   namespace,
   version,
 }: {
-  mongoOutputs: {
-    uri: pulumi.Output<string>,
-    ip: pulumi.Output<string>,
+  mongo: {
+    dbName: pulumi.Input<string>,
+    dbUsername: pulumi.Input<string>,
+    dbPassword: pulumi.Input<string>,
+    hostname: pulumi.Input<string>
   },
   provider: k8s.Provider;
   version: string;
-  namespace: pulumi.Output<string>;
+  namespace: pulumi.Input<string>;
 }) {
   const stack = pulumi.getStack();
-  const appLabels = { app: "foley" };
+  const selectorLabels = { app: "foley" };
   const image = `xapixio/foley:${version}`;
   const config = configs.prefixed("xapix-foley-common");
   const frontendConfig = configs.prefixed("xapix-foley-frontend");
   const backendConfig = configs.prefixed("xapix-foley-backend");
 
-  const domainBase = config.require("domain-base");
+  const domain = config.require("domain");
   const frontendMemoryMB = frontendConfig.requireNumber("require-memory");
   const backendMemoryMB = backendConfig.requireNumber("require-memory");
 
-  const env = pulumi.all([mongoOutputs.uri, mongoOutputs.ip])
-    .apply(([uri, ip]) => makeEnvVars(domainBase, uri, ip));
+  const uri = pulumi.interpolate `mongodb://${mongo.dbUsername}:${mongo.dbPassword}@${mongo.hostname}:27017/${mongo.dbName}`;
 
-  const publishServiceArgs = {
-    namespace,
-    appLabels,
-    provider,
-  };
+  const env = pulumi.all([uri, mongo.hostname])
+    .apply(([uri, hostname]) => makeEnvVars(domain, uri, hostname));
 
-  // xapix.k8sService.publishService({
-  //   ...publishServiceArgs,
-  //   domain: `foley.${domainBase}`,
-  //   service: {
-  //     create: true,
-  //     name: "foley-backend",
-  //     targetPort: 3000,
-  //     selector: appLabels,
-  //   },
-  // });
-
-  const frontendIngress = xapix.k8sService.publishService({
-    ...publishServiceArgs,
-    domain: `foley.${domainBase}`,
-    service: {
-      create: true,
-      name: "foley-frontend",
-      targetPort: 8080,
-      selector: appLabels,
-    },
-  });
-
-  // const frontendService = new k8s.core.v1.Service("foley-frontend", {
-  //   metadata: {
-  //     name: "foley-frontend",
-  //     namespace,
-  //     labels: {
-  //       "xapix/http-monitor": "true",
-  //     },
-  //   },
-  //   spec: {
-  //     type: "ClusterIP",
-  //     ports: [
-  //       {
-  //         name: "http",
-  //         port: 80,
-  //         protocol: "TCP",
-  //         targetPort: 8080,
-  //       },
-  //     ],
-  //     selector: appLabels,
-  //   },
-  // }, { provider });
+  const labels = {}; // { "xapix/http-monitor": "true" };
 
   const backendService = new k8s.core.v1.Service("foley-backend", {
     metadata: {
       name: "foley-backend",
       namespace,
-      labels: {
-        "xapix/http-monitor": "true",
-      },
+      labels,
     },
     spec: {
       type: "ClusterIP",
       ports: [
         {
           name: "http",
-          port: 3000,
+          port: 80,
           protocol: "TCP",
           targetPort: 3000,
         },
       ],
-      selector: appLabels,
+      selector: selectorLabels,
     },
   }, { provider });
 
-  const appResource = new k8s.apps.v1.ReplicaSet(
-    `foley-${stack}-repset`,
+  const frontendService = new k8s.core.v1.Service("foley-frontend", {
+    metadata: {
+      name: "foley-frontend",
+      namespace,
+      labels,
+    },
+    spec: {
+      type: "ClusterIP",
+      ports: [
+        {
+          name: "http",
+          port: 80,
+          protocol: "TCP",
+          targetPort: 8080,
+        },
+      ],
+      selector: selectorLabels,
+    },
+  }, { provider });
+
+  const deployment = new k8s.apps.v1.Deployment(
+    `foley-${stack}`,
     {
       metadata: { namespace },
       spec: {
-        selector: { matchLabels: appLabels },
-        replicas: config.getNumberWithDefault("replicas"),
+        selector: { matchLabels: selectorLabels },
         template: {
-          metadata: { labels: appLabels },
+          metadata: { labels: selectorLabels },
           spec: {
             containers: [
               {
@@ -207,5 +179,40 @@ export default function ({
     { provider }
   );
 
-  return { endpoints: frontendIngress };
-}
+  return new k8s.extensions.v1beta1.Ingress(`foley-${stack}-ingress`, {
+    metadata: {
+      namespace,
+      annotations: {
+        // This annotation tells externalDNS to create the record
+        "external-dns.alpha.kubernetes.io/hostname": domain,
+        // This annotation tells cert-manager what issuer to use for TLS
+        // [AGREEMENT]: we assume that cert-manager with this issuer is deployed on the referred cluster
+        "cert-manager.io/cluster-issuer": "letsencrypt-prod"
+      }
+    },
+    spec: {
+      tls: [{
+        hosts: [domain],
+        secretName: `foley-${stack}-tls`
+      }],
+      rules: [{
+        host: domain,
+        http: {
+          paths: [{
+            path: "/api",
+            backend: {
+              serviceName: backendService.metadata.name,
+              servicePort: "http"
+            }
+          }, {
+            path: "/",
+            backend: {
+              serviceName: frontendService.metadata.name,
+              servicePort: "http"
+            }
+          }]
+        }
+      }]
+    }
+  }, { provider });
+};
