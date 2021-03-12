@@ -97,11 +97,11 @@ export default function ({
     },
   }, { provider });
 
-  const deployment = new k8s.apps.v1.Deployment(
-    `foley-${stack}`,
+  new k8s.apps.v1.ReplicaSet(`foley-${stack}`,
     {
       metadata: { namespace },
       spec: {
+        replicas: 1,
         selector: { matchLabels: selectorLabels },
         template: {
           metadata: { labels: selectorLabels },
