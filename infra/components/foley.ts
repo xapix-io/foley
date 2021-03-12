@@ -59,13 +59,10 @@ export default function ({
   const env = pulumi.all([uri, mongo.hostname])
     .apply(([uri, hostname]) => makeEnvVars(domain, uri, hostname));
 
-  const labels = {}; // { "xapix/http-monitor": "true" };
-
   const backendService = new k8s.core.v1.Service("foley-backend", {
     metadata: {
       name: "foley-backend",
       namespace,
-      labels,
     },
     spec: {
       type: "ClusterIP",
@@ -85,7 +82,6 @@ export default function ({
     metadata: {
       name: "foley-frontend",
       namespace,
-      labels,
     },
     spec: {
       type: "ClusterIP",
