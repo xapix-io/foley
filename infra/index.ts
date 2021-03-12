@@ -24,14 +24,9 @@ const mongo = mongodb({
   namespace: appsNs,
 });
 
-const ingress = foley({
+foley({
   mongo,
   provider,
   namespace: appsNs,
   version,
 });
-
-const endpoints = ingress.status.loadBalancer.ingress
-  .apply(ingresses => ingresses.map(x => x.ip || x.hostname));
-
-export { endpoints };
