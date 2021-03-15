@@ -4,6 +4,7 @@ jobs:
   build:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
+    environment: CD
     steps:
     - name: Copy Repo Files
       uses: actions/checkout@master
@@ -25,6 +26,7 @@ jobs:
 
   deploy-neu:
     runs-on: ubuntu-latest
+    environment: CD
     needs: [build]
     steps:
       - uses: actions/checkout@v2
