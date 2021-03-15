@@ -30,7 +30,7 @@ jobs:
     # needs: [build]
     steps:
       - uses: actions/checkout@v2
-      - run: echo "//npm.pkg.github.com/:_authToken=${{secrets.GITHUB_TOKEN}}" >> .npmrc
+      - run: echo "//npm.pkg.github.com/:_authToken=${{secrets.XAPIXBOT_GITHUB_TOKEN}}" >> .npmrc
         working-directory: ./infra
       - uses: docker://pulumi/actions
         with:
