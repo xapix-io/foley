@@ -1,28 +1,28 @@
 name: CD
 on: push
 jobs:
-  build:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
-    runs-on: ubuntu-latest
-    environment: CD
-    steps:
-    - name: Copy Repo Files
-      uses: actions/checkout@master
-      with:
-        submodules: true
-    - name: Publish Foley Base Docker Image to GPR
-      uses: ./.github/actions/docker
-      env:
-        DOCKER_BUILDKIT: 1
-      with:
-        # check https://github.community/t5/GitHub-Actions/Github-Actions-Docker-login/td-p/29852
-        USERNAME: 'xapixbot'
-        PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-        IMAGE_NAME: 'xapixio/foley'
-        DOCKERFILE_PATH: './Dockerfile'
-        BUILD_CONTEXT: '.'
-        BUILD_PARAMS: '--progress plain'
-        # CACHE: true
+  # build:
+  #   if: "!contains(github.event.head_commit.message, 'skip ci')"
+  #   runs-on: ubuntu-latest
+  #   environment: CD
+  #   steps:
+  #   - name: Copy Repo Files
+  #     uses: actions/checkout@master
+  #     with:
+  #       submodules: true
+  #   - name: Publish Foley Base Docker Image to GPR
+  #     uses: ./.github/actions/docker
+  #     env:
+  #       DOCKER_BUILDKIT: 1
+  #     with:
+  #       # check https://github.community/t5/GitHub-Actions/Github-Actions-Docker-login/td-p/29852
+  #       USERNAME: 'xapixbot'
+  #       PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+  #       IMAGE_NAME: 'xapixio/foley'
+  #       DOCKERFILE_PATH: './Dockerfile'
+  #       BUILD_CONTEXT: '.'
+  #       BUILD_PARAMS: '--progress plain'
+  #       # CACHE: true
 
   deploy-neu:
     runs-on: ubuntu-latest
