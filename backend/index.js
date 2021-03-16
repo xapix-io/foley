@@ -6,7 +6,7 @@ const router = express.Router();
 
 const app = express();
 const port = 3000;
-const baseUrl = '/api';
+const baseUrl = process.env.BASE_URL || '/api';
 
 app.use(cors());
 app.use(baseUrl, router);

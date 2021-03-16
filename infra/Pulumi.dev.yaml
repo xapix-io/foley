@@ -1,0 +1,8 @@
+config:
+  appsns:appsns-stack-ref: "xapix/infra-appsns/dev"
+  core:stack-ref: "xapix/infra-k8s/dev"
+  xapix-foley-common:domain: "foley.neu-infra-test.ix-io.net"
+  xapix-foley-backend:require-cpu: "200m"
+  xapix-foley-backend:require-memory: "512"
+  xapix-foley-frontend:require-cpu: "200m"
+  xapix-foley-frontend:require-memory: "512"
