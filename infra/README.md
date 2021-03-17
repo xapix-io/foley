@@ -77,7 +77,7 @@ Notes:
 * includes submodules configuration, which clones `xapix-io/foley-frontend` into the `frontend` subdirectory
 * uses an action (some code) defined in .github/actions/docker
 
-The code [is very simple]() and [is used elsewhere](). 
+The code [is very simple](https://github.com/xapix-io/foley/blob/j0ni/ops/.github/actions/docker/index.js) and [is used elsewhere](https://github.com/xapix-io/clojud/blob/master/.github/actions/docker/index.js). 
 
 ### Pulumi Deployment to Dev Environment
 
