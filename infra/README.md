@@ -42,3 +42,40 @@ Now review the proposed changes and respond accordingly.
 
 ## CD
 
+The CD setup is lifted mostly from the clojud build, though somewhat simplified. Split into two steps, we have:
+
+### Build
+
+``` yaml
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    environment: CD
+    steps:
+    - name: Copy Repo Files
+      uses: actions/checkout@master
+      with:
+        submodules: true
+    - name: Publish Foley Base Docker Image to GPR
+      uses: ./.github/actions/docker
+      env:
+        DOCKER_BUILDKIT: 1
+      with:
+        # check https://github.community/t5/GitHub-Actions/Github-Actions-Docker-login/td-p/29852
+        USERNAME: 'xapixbot'
+        PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        IMAGE_NAME: 'xapixio/foley'
+        DOCKERFILE_PATH: './Dockerfile'
+        BUILD_CONTEXT: '.'
+        BUILD_PARAMS: '--progress plain'
+        # CACHE: true
+```
+
+Notes:
+* use "skip ci" to prevent deployment
+* references an `environment`, called "CD" - this is a github secrets abstraction, not entirely sure how useful. However it is a thing which is configured in the Github project settings as the name of a set of secrets for use in builds.
+* includes submodules configuration, which clones `xapix-io/foley-frontend` into the `frontend` subdirectory
+* uses an action (some code) defined in .github/actions/docker
+
+The code [is very simple]() and [is used elsewhere](). 
+
