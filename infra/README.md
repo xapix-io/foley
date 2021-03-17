@@ -8,9 +8,9 @@ Foley deployment depends on the following tools and dependencies:
 * Pulumi command-line tool
 * AWS CLI
 * Node v14 (LTS)
-* Helm Charts v2
+* Helm Charts v3
 
-More about the [tools here](https://github.com/xapix-io/infra-k8s/blob/master/docs/pulumi-workshop1.md), with links to installation instructions.
+More about the [tools here](https://github.com/xapix-io/infra-k8s/blob/master/docs/pulumi-workshop1.md), with links to installation instructions. Note also that this uses helm v3, not v2.
 
 ## Manual Process
 
@@ -79,3 +79,30 @@ Notes:
 
 The code [is very simple]() and [is used elsewhere](). 
 
+### Pulumi Deployment to Dev Environment
+
+``` yaml
+  deploy-neu:
+    runs-on: ubuntu-latest
+    environment: CD
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v2
+      - run: echo "//npm.pkg.github.com/:_authToken=${{secrets.XAPIXBOT_GITHUB_TOKEN}}" >> .npmrc
+        working-directory: ./infra
+      - uses: docker://pulumi/actions
+        with:
+          args: up --yes
+        env:
+          VERSION: ${{ github.sha }}
+          AWS_REGION: eu-west-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN_XAPIXBOT }}
+          PULUMI_CI: up
+          PULUMI_ROOT: infra
+```
+
+Notes:
+* Note the required secrets
+`
