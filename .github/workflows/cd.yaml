@@ -10,19 +10,34 @@ jobs:
       uses: actions/checkout@master
       with:
         submodules: true
-    - name: Publish Foley Base Docker Image to GPR
+
+    - name: Publish Foley Docker Frontend Image
       uses: ./.github/actions/docker
       env:
         DOCKER_BUILDKIT: 1
       with:
         # check https://github.community/t5/GitHub-Actions/Github-Actions-Docker-login/td-p/29852
-        USERNAME: 'xapixbot'
-        PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-        IMAGE_NAME: 'xapixio/foley'
-        DOCKERFILE_PATH: './Dockerfile'
-        BUILD_CONTEXT: '.'
-        BUILD_PARAMS: '--progress plain'
-        # CACHE: true
+        username: 'xapixbot'
+        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        image_name: 'xapixio/foley-frontend'
+        dockerfile_path: './frontend/Dockerfile'
+        build_context: './frontend'
+        build_params: '--progress plain'
+        #cache: true
+
+    - name: Publish Foley Docker Frontend Image
+      uses: ./.github/actions/docker
+      env:
+        DOCKER_BUILDKIT: 1
+      with:
+        # check https://github.community/t5/GitHub-Actions/Github-Actions-Docker-login/td-p/29852
+        username: 'xapixbot'
+        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        image_name: 'xapixio/foley-backend'
+        dockerfile_path: './backend/Dockerfile'
+        build_context: './backend'
+        build_params: '--progress plain'
+        #cache: true
 
   deploy-neu:
     runs-on: ubuntu-latest

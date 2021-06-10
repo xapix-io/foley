@@ -27,25 +27,26 @@ function makeEnvVars(
   ];
 }
 
-export default function ({
+export default function({
   mongo,
   provider,
   namespace,
   version,
 }: {
-  mongo: {
-    dbName: pulumi.Input<string>,
-    dbUsername: pulumi.Input<string>,
-    dbPassword: pulumi.Input<string>,
-    hostname: pulumi.Input<string>
-  },
-  provider: k8s.Provider;
-  version: string;
-  namespace: pulumi.Input<string>;
-}) {
+    mongo: {
+      dbName: pulumi.Input<string>,
+      dbUsername: pulumi.Input<string>,
+      dbPassword: pulumi.Input<string>,
+      hostname: pulumi.Input<string>
+    },
+    provider: k8s.Provider;
+    version: string;
+    namespace: pulumi.Input<string>;
+  }) {
   const stack = pulumi.getStack();
   const selectorLabels = { app: "foley" };
-  const image = `xapixio/foley:${version}`;
+  const frontendImage = `xapixio/foley-frontend:${version}`;
+  const backendImage = `xapixio/foley-backend:${version}`;
   const config = configs.prefixed("xapix-foley-common");
   const frontendConfig = configs.prefixed("xapix-foley-frontend");
   const backendConfig = configs.prefixed("xapix-foley-backend");
@@ -54,10 +55,33 @@ export default function ({
   const frontendMemoryMB = frontendConfig.requireNumber("require-memory");
   const backendMemoryMB = backendConfig.requireNumber("require-memory");
 
-  const uri = pulumi.interpolate `mongodb://${mongo.dbUsername}:${mongo.dbPassword}@${mongo.hostname}:27017/${mongo.dbName}`;
+  const uri = pulumi.interpolate`mongodb://${mongo.dbUsername}:${mongo.dbPassword}@${mongo.hostname}:27017/${mongo.dbName}`;
 
   const env = pulumi.all([uri, mongo.hostname])
     .apply(([uri, hostname]) => makeEnvVars(domain, uri, hostname));
+
+
+  const volumeMounts: k8s.types.input.core.v1.VolumeMount[] = [
+    {
+      name: 'nginx-cache',
+      mountPath: '/var/cache/nginx'
+    },
+    {
+      name: 'nginx-pid',
+      mountPath: '/var/run',
+    },
+  ]
+
+  const volumes: k8s.types.input.core.v1.Volume[] = [
+    {
+      name: 'nginx-cache',
+      emptyDir: {}
+    },
+    {
+      name: 'nginx-pid',
+      emptyDir: {}
+    }
+  ]
 
   const backendService = new k8s.core.v1.Service("foley-backend", {
     metadata: {
@@ -90,7 +114,7 @@ export default function ({
           name: "http",
           port: 80,
           protocol: "TCP",
-          targetPort: 8080,
+          targetPort: 80,
         },
       ],
       selector: selectorLabels,
@@ -109,18 +133,17 @@ export default function ({
             containers: [
               {
                 name: "foley-app-frontend",
-                image,
-                args: ["frontend"],
+                image: frontendImage,
                 readinessProbe: {
                   httpGet: {
                     path: "/",
-                    port: 8080,
+                    port: 80,
                   },
                   initialDelaySeconds: 10,
                   periodSeconds: 5
                 },
                 env,
-                ports: [{ containerPort: 8080 }],
+                ports: [{ containerPort: 80 }],
                 resources: {
                   requests: {
                     memory: frontendMemoryMB + "Mi",
@@ -131,6 +154,7 @@ export default function ({
                     cpu: frontendConfig.require("require-cpu"),
                   },
                 },
+                volumeMounts,
                 securityContext: {
                   capabilities: {
                     drop: ["ALL"],
@@ -140,8 +164,7 @@ export default function ({
               },
               {
                 name: "foley-app-backend",
-                image,
-                args: ["backend"],
+                image: backendImage,
                 env,
                 ports: [{ containerPort: 3000 }],
                 resources: {
@@ -162,6 +185,7 @@ export default function ({
                 },
               },
             ],
+            volumes,
             imagePullSecrets: [
               {
                 // [AGREEMENT]: we assume that this secret with docker credentials is deployed on the referred cluster

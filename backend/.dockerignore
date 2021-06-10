@@ -1,0 +1,10 @@
+.DS_Store
+.envrc
+.git
+Dockerfile*
+docker-compose*.yaml
+README.md
+infra
+node_modules
+dist
+tmp
