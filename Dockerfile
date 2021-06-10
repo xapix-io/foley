@@ -5,7 +5,7 @@ ADD . /opt/app
 
 # install the frontend deps
 WORKDIR /opt/app/frontend
-RUN yarn install --frozen-lockfile && yarn cache clean && yarn build && npm install http-server
+RUN yarn install --frozen-lockfile && yarn cache clean && yarn build && npm install live-server
 EXPOSE 8080
 
 # install backend deps

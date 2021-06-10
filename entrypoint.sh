@@ -10,7 +10,7 @@ case $1 in
     frontend)
         export PATH=/opt/app/frontend/node_modules/.bin:$PATH
         cd frontend/dist
-        exec http-server
+        exec live-server --port=8080 --entry-file=./index.html
         ;;
     *)
         echo No idea what to do with $@
