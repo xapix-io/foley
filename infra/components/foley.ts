@@ -97,7 +97,7 @@ export default function ({
     },
   }, { provider });
 
-  new k8s.apps.v1.ReplicaSet(`foley-${stack}`,
+  new k8s.apps.v1.Deployment(`foley-${stack}`,
     {
       metadata: { namespace },
       spec: {
@@ -175,7 +175,7 @@ export default function ({
     { provider }
   );
 
-  return new k8s.extensions.v1beta1.Ingress(`foley-${stack}-ingress`, {
+  new k8s.extensions.v1beta1.Ingress(`foley-${stack}-ingress`, {
     metadata: {
       namespace,
       annotations: {
