@@ -130,6 +130,19 @@ export default function({
         template: {
           metadata: { labels: selectorLabels },
           spec: {
+            initContainers: [{
+              name: 'volume-permission-fix',
+              image: 'busybox',
+              command: ["sh", "-c", "chgrp -R root /app-cache /app-pid; chmod -R 770 /app-cache /app-pid"],
+                volumeMounts: [{
+                  name: 'nginx-cache',
+                  mountPath: '/app-cache',
+                }, {
+                  name: 'nginx-pid',
+                  mountPath: '/app-pid',
+                }
+              ]
+            }],
             containers: [
               {
                 name: "foley-app-frontend",
@@ -157,6 +170,7 @@ export default function({
                 volumeMounts,
                 securityContext: {
                   capabilities: {
+                    add: ["CHOWN", "SETGID", "SETUID", "NET_BIND_SERVICE"],
                     drop: ["ALL"],
                   },
                   readOnlyRootFilesystem: true,
@@ -199,7 +213,7 @@ export default function({
     { provider }
   );
 
-  new k8s.extensions.v1beta1.Ingress(`foley-${stack}-ingress`, {
+  new k8s.networking.v1beta1.Ingress(`foley-${stack}-ingress`, {
     metadata: {
       namespace,
       annotations: {
